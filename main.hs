@@ -3,6 +3,7 @@ import System.Random (randomRIO)
 import Data.Char (isAlpha, toLower)
 import Data.List.Split (splitOneOf)
 import qualified Data.Map as Map
+import System.IO (writeFile)
 
 data Color = Red | Black deriving Show -- `Show` makes it printable, according to the internet
 data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving Show -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
@@ -68,5 +69,9 @@ main = do
   wordsList <- readWordsFromFile filePath
   let wordTree = countWords wordsList
 
-  putStrLn "In-order traversal of the tree with word counts:"
-  print (inOrder wordTree)
+  --putStrLn "In-order traversal of the tree with word counts:"
+  --print (inOrder wordTree)
+  let inOrderOutput = inOrder wordTree
+  let outputFileName = "countedWords.txt"
+  writeFile outputFileName (unlines (map show inOrderOutput))
+  putStrLn $ "Word counts saved to: " ++ outputFileName
