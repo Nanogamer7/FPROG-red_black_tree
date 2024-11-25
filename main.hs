@@ -1,4 +1,8 @@
 import System.Random (randomRIO)
+import System.Random (randomRIO)
+import Data.Char (isAlpha, toLower)
+import Data.List.Split (splitOneOf)
+import qualified Data.Map as Map
 
 data Color = Red | Black deriving Show -- `Show` makes it printable, according to the internet
 data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving Show -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
@@ -33,10 +37,36 @@ inOrder (Node _ left x right) = inOrder left ++ [x] ++ inOrder right -- recursiv
 generateRandomList :: Int -> IO [Int]
 generateRandomList n = mapM (const $ randomRIO (1, 100)) [1..n]
 
+insertWord :: Ord a => (a, Int) -> Tree (a, Int) -> Tree (a, Int)
+insertWord (word, count) Empty = Node Red Empty (word, count) Empty
+insertWord (word, count) (Node color left (w, c) right)
+  | word < w  = balance (Node color (insertWord (word, count) left) (w, c) right)
+  | word == w = Node color left (w, c + count) right -- Increment count if word matches
+  | word > w  = balance (Node color left (w, c) (insertWord (word, count) right))
+
+readWordsFromFile :: FilePath -> IO [String]
+readWordsFromFile path = do
+  content <- readFile path
+  let wordList = splitOneOf " ,.!?;:\n\r" content
+  return $ map (map toLower . filter isAlpha) $ filter (not . null) wordList
+
+{-
+countWords :: [String] -> Tree (String, Int)
+countWords words = foldr insertWord Empty (Map.toList wordCounts)
+  where
+    wordCounts = Map.fromListWith (+) [(word, 1) | word <- words]
+    insertWord (word, count) tree = insert (word, count) tree
+-}
+
+countWords :: [String] -> Tree (String, Int)
+countWords = foldr (\word tree -> insertWord (word, 1) tree) Empty
+
 main :: IO ()
 main = do
-  numbers <- generateRandomList 15
-  let tree = insertList numbers Empty
+  putStrLn "Enter the path of the text file to process:"
+  filePath <- getLine
+  wordsList <- readWordsFromFile filePath
+  let wordTree = countWords wordsList
 
-  print tree
-  print (inOrder tree)
+  putStrLn "In-order traversal of the tree with word counts:"
+  print (inOrder wordTree)
