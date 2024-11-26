@@ -1,10 +1,13 @@
 import System.Random (randomRIO)
 import System.Environment (getArgs)
-import Data.Char (isAlpha, toLower)
-import Data.List.Split (splitOneOf)
-import Data.Char
-import qualified Data.Map as Map
-import System.IO (writeFile)
+import System.CPUTime (getCPUTime)
+import Control.DeepSeq()
+import Data.Char (isAlpha, toLower, isPunctuation, isDigit)
+import Data.List (foldl')
+import Data.List.Split()
+import Data.Time.Clock()
+import System.IO()
+import Numeric
 
 data Color = Red | Black deriving Show -- `Show` makes it printable, according to the internet
 data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving Show -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
@@ -20,6 +23,7 @@ insert x t = makeBlack (ins t)
       | x > y = balance (Node color left y (ins right))
     makeBlack (Node _ left x right) = Node Black left x right -- root node needs to be black -> otherwise black violation if one of children empty
 
+-- basic list insert, not used
 insertList :: Ord a => [a] -> Tree a -> Tree a
 insertList [] tree = tree
 insertList (x:xs) tree = insertList xs (insert x tree) -- first element inserted, rest passed as list to next iteration
@@ -56,11 +60,15 @@ tokenize str = words (map (\char -> case () of
           | isDigit char -> char
           | otherwise    -> ' ') (filter (not . isPunctuation) str))
 
-insertListWithCount :: [String] -> Tree (String, Int)
-insertListWithCount = foldr (\word tree -> insertWithCount word tree) Empty
+insertListWithCount :: [String] -> Tree (String, Int) -> Tree (String, Int)
+--insertListWithCount = foldr (\word tree -> insertWithCount word tree) Emptyl
+insertListWithCount xs tree = foldl' (flip insertWithCount) tree xs
 
 formatWord :: (String, Int) -> String
 formatWord (string, count) = string ++ ": " ++ show count
+
+printTimeDifference :: String -> Integer -> Integer -> IO ()
+printTimeDifference str t1 t2 = putStrLn $ str ++ ": " ++ showFFloat Nothing (fromIntegral (t2 - t1) / (10^12)) "" ++ "s"
 
 main :: IO ()
 main = do
@@ -68,10 +76,10 @@ main = do
   case args of
     [filePath] -> do
       fullText <- readFile filePath
-      let wordsList = tokenize fullText
-      let wordTree = insertListWithCount wordsList
-      let inOrderOutput = inOrder wordTree
+      time0 <- getCPUTime
       let outputFileName = "output.txt"
-      writeFile outputFileName (unlines (map show inOrderOutput))
+      writeFile outputFileName (unlines (map formatWord (inOrder (insertListWithCount (tokenize fullText) Empty))))
+      time4 <- getCPUTime
+      printTimeDifference "Total" time0 time4
       putStrLn $ "Word counts saved to: " ++ outputFileName
     _ -> putStrLn "Usage: <program> <input-file-path>"
