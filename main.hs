@@ -59,6 +59,9 @@ tokenize str = words (map (\char -> case () of
 insertListWithCount :: [String] -> Tree (String, Int)
 insertListWithCount = foldr (\word tree -> insertWithCount word tree) Empty
 
+formatWord :: (String, Int) -> String
+formatWord (string, count) = string ++ ": " ++ show count
+
 main :: IO ()
 main = do
   args <- getArgs
