@@ -1,10 +1,14 @@
 import System.Random (randomRIO)
 import System.Environment (getArgs)
+import System.CPUTime (getCPUTime)
+import Control.DeepSeq (deepseq)
+import Data.Char
 import Data.Char (isAlpha, toLower)
 import Data.List.Split (splitOneOf)
-import Data.Char
+import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import qualified Data.Map as Map
 import System.IO (writeFile)
+import Numeric
 
 data Color = Red | Black deriving Show -- `Show` makes it printable, according to the internet
 data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving Show -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
@@ -62,16 +66,32 @@ insertListWithCount = foldr (\word tree -> insertWithCount word tree) Empty
 formatWord :: (String, Int) -> String
 formatWord (string, count) = string ++ ": " ++ show count
 
+printTimeDifference :: String -> Integer -> Integer -> IO ()
+printTimeDifference str t1 t2 = putStrLn $ str ++ ": " ++ showFFloat Nothing (fromIntegral (t2 - t1) / (10^12)) "" ++ "s"
+
 main :: IO ()
 main = do
   args <- getArgs
   case args of
     [filePath] -> do
       fullText <- readFile filePath
+      time0 <- getCPUTime
       let wordsList = tokenize fullText
+      wordsList `deepseq` return ()
+      time1 <- getCPUTime
+      printTimeDifference "Tokenize" time0 time1
       let wordTree = insertListWithCount wordsList
+      wordsList `seq` return ()
+      time2 <- getCPUTime
+      printTimeDifference "Insert" time1 time2
       let inOrderOutput = inOrder wordTree
+      inOrderOutput `deepseq` return ()
+      time3 <- getCPUTime
+      printTimeDifference "To list" time2 time3
       let outputFileName = "output.txt"
-      writeFile outputFileName (unlines (map show inOrderOutput))
+      writeFile outputFileName (unlines (map formatWord inOrderOutput))
+      time4 <- getCPUTime
+      printTimeDifference "Write to disk" time3 time4
+      printTimeDifference "Total" time0 time4
       putStrLn $ "Word counts saved to: " ++ outputFileName
     _ -> putStrLn "Usage: <program> <input-file-path>"
