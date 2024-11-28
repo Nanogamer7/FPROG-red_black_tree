@@ -1,5 +1,3 @@
-module CountWords where
-
 import System.Random (randomRIO)
 import System.Environment (getArgs)
 import System.CPUTime (getCPUTime)
