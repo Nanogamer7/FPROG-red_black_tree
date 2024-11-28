@@ -11,8 +11,8 @@ import Tokenizer
 import RedBlack
 
 -- for testing purposes
-generateRandomList :: Int -> IO [Int]
-generateRandomList n = mapM (const $ randomRIO (1, 100)) [1..n]
+--generateRandomList :: Int -> IO [Int]
+--generateRandomList n = mapM (const $ randomRIO (1, 100)) [1..n]
 
 printTimeDifference :: String -> Integer -> Integer -> IO ()
 printTimeDifference str t1 t2 = putStrLn $ str ++ ": " ++ showFFloat Nothing (fromIntegral (t2 - t1) / (10^12)) "" ++ "s"
