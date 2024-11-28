@@ -1,4 +1,4 @@
-# Red-Black tree
+# Word count problem using a Red-Black tree
 
 Implemented by *(Add names before submitting)*
 
