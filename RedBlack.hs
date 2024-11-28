@@ -1,9 +1,9 @@
 module RedBlack where
-  
+
 import Data.List (foldl')
 
-data Color = Red | Black deriving Show -- `Show` makes it printable, according to the internet
-data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving Show -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
+data Color = Red | Black deriving (Show, Eq) -- `Show` makes it printable, according to the internet
+data Tree a = Empty | Node Color (Tree a) a (Tree a) deriving (Show, Eq) -- Tree is either empty, or consists of a Node with properties color, left subtree, value, and  right subtree 
 
 -- basic insert, not used
 insert :: Ord a => a -> Tree a -> Tree a
@@ -32,7 +32,6 @@ balance tree = tree -- default case
 inOrder :: Tree a -> [a]
 inOrder Empty = []
 inOrder (Node _ left x right) = inOrder left ++ [x] ++ inOrder right -- recursively call with left subtree -> append value -> recursively call with right subtree
-
 
 insertWithCount :: Ord a => a -> Tree (a, Int) -> Tree (a, Int)
 insertWithCount x t = makeBlack (ins t)
